@@ -1,0 +1,141 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/weather-icons.css">
+<body style="background-color: aliceblue;">
+<div class="wrapper">
+
+<search>
+    <form id="target">
+        <input id="search" type="text" placeholder="city, country" />
+        <input type="submit" value="Go" />
+    </form>
+</search>
+</div>
+
+<div class='panel'>
+    <h2 class="location"></h2>
+    <div class='weather' id='weather'>
+      <div class='group secondary'>
+        <h3 id='dt'></h3>
+        <h3 id='description'></h3>
+      </div>
+
+
+      <div class='group secondary'>
+        <h3 id='wind'></h3>
+        <h3 id='humidity'></h3>
+      </div>
+      <div class='temperature' id='temperature'>
+        <h1><i class="icon"></i>
+        <span class="temp"></span></h1>
+      </div>
+      <div class='forecast' id='forecast'></div>
+    </div>
+  </div>
+</body>
+<script>
+
+
+// get current-location thru ip-adi.com   
+$.ajax({
+   dataType: 'json',
+   url: 'http://ip-api.com/json'
+})
+.then(function(data) {
+    var yourLocation = data.country + '/' + data.city  + '.json';
+    // console.log(yourLocation);
+    getWeather(yourLocation);
+});
+    
+$myresult = "";
+$checkInput ="";
+
+function getWeather(input) {
+      console.log(input);
+      var requestWeather = $.ajax({
+          dataType: 'json',
+          url: 'http://api.wunderground.com/api/8211a6c5715de738/geolookup/conditions/q/'+ input,
+          dataType : "jsonp",
+          success : function(parsed_json) {
+          
+          var city = parsed_json['location']['city'];
+          var country = parsed_json['location']['country_name'];
+          var temp_c = parsed_json['current_observation']['temp_c'];
+          $myresult = parsed_json['current_observation']['icon'];
+          //console.log("Current temperature in " + city +',' + country + " is: " + temp_c);
+         
+          updatePanel(city, country, temp_c);
+          }
+      }); 
+}
+      
+function updatePanel(x, y, z) {
+  $(".location").html(x + ', ' + y);
+  $(".temp").html( z + "<span id='celsius'>&deg;C</span>");
+
+  switch ($myresult) { 
+  case 'chanceflurries': 
+    console.log('Chance of Flurries');
+    $(".icon").addClass('wi wi-snow')
+    break;
+  case 'chancerain': 
+    console.log('Chance of Rain');
+     $(".icon").addClass('wi wi-rain');
+    break;
+  case 'chancesleet': 
+    console.log('Chance of Sleet');
+     $(".icon").addClass('wi wi-sleet');
+    break;    
+  case 'chancesnow': 
+    console.log('Chance of Snow');
+     $(".icon").addClass('wi wi-snowflake-cold');
+    break;
+  case 'chancetstorms': 
+    console.log('Chance of Thunderstorm');
+     $(".icon").addClass('wi wi-thunderstorm');
+    break;
+  case 'clear': 
+    console.log('clear sky');
+     $(".icon").addClass('wi wi-clear');
+    break;
+
+  case 'partlycloudy':
+    console.log("Partly Cloudy");
+     $(".icon").addClass('wi wi-cloudy');
+    break;
+  default:
+    console.log('Nobody Wins!');
+     $(".icon").addClass('wi wi-sleet');
+  }
+
+}
+$("form").on('submit', function (e) {
+   var blind = document.getElementById('search').value;
+   validateString(blind);
+   e.preventDefault();
+})
+
+function validateString(x) {
+  if (x.indexOf(',') > -1) {
+   var segments = x.split(',')
+   var newInput = segments[1] + '/' + segments[0]  + '.json';
+   var joinedInput = newInput.replace(/\s/g,'');
+   console.log(joinedInput);
+   getWeather(joinedInput);
+  }
+  
+}
+
+</script>
+
+<style>
+.temp {
+  font-size: 2.5em;
+  font-weight: 300;
+  line-height: 0.75;
+}
+
+#celsius {
+  font-size: 1.75rem;
+  vertical-align: super;
+}
+</style>
